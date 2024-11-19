@@ -13,7 +13,7 @@ const tagsRouter = require("./tags.routes");
 const sessionsRouter = require("./sessions.routes")
 
 //Declarando rotas mães para recursos especificos - Callback será o carregamento do router especifico
-/* router.use("/", (request, response) => response.json({message: "Server on!"})) */
+router.get("/", (request, response) => response.json({message: "Server on!"}))
 router.use("/users", userRouter);
 router.use("/notes", notesRouter);
 router.use("/tags", tagsRouter);
