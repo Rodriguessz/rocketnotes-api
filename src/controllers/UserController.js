@@ -1,6 +1,8 @@
 const AppError = require("../utils/appError");
-
 const sqliteDb = require("../database/sqlite");
+const UserRepository = require("../repositories/UserRepository");
+const userRepository = new UserRepository();
+
 
 //Importando a função hash da biblioteca bcryptjs
 
@@ -22,11 +24,9 @@ class UserController {
     const database = await sqliteDb();
 
     //Executa a query em questão e retorna a primeira linha de registro, caso encontrado.
-    const emailAlreadyExisits = await database.get(
-      "SELECT * FROM users WHERE email = (?)",
-      [email],
-    );
+    const emailAlreadyExisits = await userRepository.findByEmail(email);
 
+  
     //Verifica se o email enviado na request está presente em nosso BD
     if (emailAlreadyExisits) {
       //Retorna um erro indicando que o email já foi cadastrado
@@ -34,12 +34,9 @@ class UserController {
     }
 
     //Inserindo o usuário no banco de dados, caso o email não seja encontrado
-    await database.run(
-      `INSERT INTO users (name, email, password) VALUES (?, ? , ?) `,
-      [name, email, hashPassword],
-    );
+    const createdUser = await userRepository.insert(name, email, hashPassword);
 
-    response.status(201).json({ message: "Usuário criado com sucesso!" });
+    response.status(201).json({ message: "Usuário criado com sucesso!", createdUser });
   }
 
   async update(request, response) {
