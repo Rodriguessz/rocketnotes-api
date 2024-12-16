@@ -20,9 +20,6 @@ class UserController {
     // Hash - Faz a criptografia da senha com base no valor de SALT ( Fator de complexidade)
     const hashPassword = await hash(password, 8);
 
-    //Estabelece a conexão com o banco de dado
-    const database = await sqliteDb();
-
     //Executa a query em questão e retorna a primeira linha de registro, caso encontrado.
     const emailAlreadyExisits = await userRepository.findByEmail(email);
 
@@ -42,6 +39,7 @@ class UserController {
   async update(request, response) {
     //Recuperando informações do body
     const { name, email, password, oldPassword } = request.body;
+
     //Recuperando id através do objeto user vindo do middleware de autenticação.
     const user_id = request.user.id;
 
@@ -49,15 +47,13 @@ class UserController {
     const database = await sqliteDb();
 
     //Recuperando todos os campos da tabela users onde o userid for igual ao recuperado
-    const user = await database.get("SELECT * FROM users WHERE id = (?)", [user_id]);
+    const user = await userRepository.findeById(user_id);
+
     //Verifica se o usuário existe no banco de dados
     if (!user) throw new AppError("Usuário não encontrado");
 
     //Recupera o usuário que contenha o email pelo usuário
-    const userEmailIsInUse = await database.get(
-      "SELECT * FROM users WHERE email = (?)",
-      [email],
-    );
+    const userEmailIsInUse = await userRepository.findByEmail(email || user.email);
 
     //Verifica o email enviado pelo usuário e certifica de que é possivel fazer a alteração
     //Caso o email enviado exista no banco e não pertença ao usuário em questão, não é possivel alterar.
@@ -96,17 +92,10 @@ class UserController {
     user.name = name ?? user.name;
     user.email = email ?? user.email;
 
+    userRepository.update(user_id, user);
+
     //Atualiza as informações do usuário em questão
-    await database.run(
-      `
-        UPDATE users SET
-        name = (?),
-        email = (?),
-        password = (?),
-        updated_at = DATETIME('now')
-        WHERE id = (?)`,
-      [user.name, user.email, user.password, user_id],
-    );
+   await userRepository.update(user_id, user);
 
     return response
       .status(201)

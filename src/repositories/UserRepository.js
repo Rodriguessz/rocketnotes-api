@@ -14,6 +14,16 @@ class UserRepository {
         }
     }
 
+    async findeById(id){
+        try{
+            const user = await knex('users').where({ id }).first();
+            return user;
+
+        }catch(err){
+            return err;
+        }
+    }
+
 
     async insert(name, email, hashPassword) {
         try {
@@ -33,6 +43,27 @@ class UserRepository {
         } catch (err) {
             return err;
         }
+    }
+
+    async update(userId, userObject){
+
+        const updated_at = (new Date()).toLocaleString('sv-SE', { 
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+         });
+
+        const user = {...userObject, updated_at };
+        
+        try{
+            await knex('users').update(user).where({id: userId});
+       }catch(err){
+            return err;
+       }
     }
 
 }

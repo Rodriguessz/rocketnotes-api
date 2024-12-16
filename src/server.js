@@ -1,15 +1,15 @@
 require("express-async-errors");
 require("dotenv/config")
 
+const sqliteConnection = require("./database/sqlite");
 const uploadConfigs = require("../src/config/upload")
-
 //Faz um require para o modulo express e armazena tudo na variável.
 const express = require("express");
 
-//Importando a função de migration do banco de dados e inicializando-a
+/* //Importando a função de migration do banco de dados e inicializando-a
 const migrationsRun = require("./database/sqlite/migrations");
-migrationsRun();
-
+migrationsRun(); */
+sqliteConnection();
 //Importa o pacote CORS que permite configurar o compartilhamento de recursos entre diferentes origens.
 //Basicamente será utilizado para permitir que nosso front-end converse com o back-end;
 const cors = require("cors");
@@ -27,6 +27,7 @@ const router = require("./routes");
 
 //Importando o utilitário de tratamento de erros
 const AppError = require("./utils/appError");
+
 
 //Indicando o tipo de informação que será retornada via body para o nosso app
 app.use(express.json());
