@@ -1,5 +1,5 @@
-const knex = require('../database/knex/index');
-const AppError = require('../utils/appError');
+const knex = require('../../database/knex/index');
+const AppError = require('../../utils/appError');
 
 
 class UserRepository {
@@ -25,14 +25,14 @@ class UserRepository {
     }
 
 
-    async insert(name, email, hashPassword) {
+    async insert({name, email, password}) {
         try {
-            if (!name || !email || !hashPassword) throw new AppError('Argumentos faltando');
+            if (!name || !email || !password) throw new AppError('Argumentos faltando');
 
             const userInfos = {
                 name,
                 email,
-                password: hashPassword
+                password
             }
             
             const [createdId] = await knex('users').insert(userInfos);

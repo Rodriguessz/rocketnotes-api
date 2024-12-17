@@ -1,39 +1,22 @@
 const AppError = require("../utils/appError");
-const sqliteDb = require("../database/sqlite");
+
+//Repositoy de usuáros - Lida com a lógica do banco de dados referente aos usuários
 const UserRepository = require("../repositories/UserRepository");
 const userRepository = new UserRepository();
 
 
-//Importando a função hash da biblioteca bcryptjs
-
-const { hash, compare } = require("bcryptjs");
-
-//Criando o controller de usuários
 class UserController {
   async create(request, response) {
     const { name, email, password } = request.body;
 
-    if (!email) {
-      throw new AppError("O campo de email é obrigatorio!");
-    }
+    //Importando o serviço de criação de usuários - Cuida de toda regra de negocio para criação de usuários;
+    const UserCreateService = require("../services/user/UserCreateService");
+    const userCreateService = new UserCreateService(userRepository);
 
-    // Hash - Faz a criptografia da senha com base no valor de SALT ( Fator de complexidade)
-    const hashPassword = await hash(password, 8);
 
-    //Executa a query em questão e retorna a primeira linha de registro, caso encontrado.
-    const emailAlreadyExisits = await userRepository.findByEmail(email);
+    await userCreateService.execute({ name, email, password });
 
-  
-    //Verifica se o email enviado na request está presente em nosso BD
-    if (emailAlreadyExisits) {
-      //Retorna um erro indicando que o email já foi cadastrado
-      throw new AppError("O Email já está sendo utilizado!");
-    }
-
-    //Inserindo o usuário no banco de dados, caso o email não seja encontrado
-    const createdUser = await userRepository.insert(name, email, hashPassword);
-
-    response.status(201).json({ message: "Usuário criado com sucesso!", createdUser });
+    response.status(201).json({ message: "Usuário criado com sucesso!" });
   }
 
   async update(request, response) {
@@ -42,9 +25,6 @@ class UserController {
 
     //Recuperando id através do objeto user vindo do middleware de autenticação.
     const user_id = request.user.id;
-
-    //Abrindo a conexão com o banco
-    const database = await sqliteDb();
 
     //Recuperando todos os campos da tabela users onde o userid for igual ao recuperado
     const user = await userRepository.findeById(user_id);
@@ -95,7 +75,7 @@ class UserController {
     userRepository.update(user_id, user);
 
     //Atualiza as informações do usuário em questão
-   await userRepository.update(user_id, user);
+    await userRepository.update(user_id, user);
 
     return response
       .status(201)
